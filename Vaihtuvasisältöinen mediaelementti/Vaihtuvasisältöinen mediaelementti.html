@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kissakuvagalleria</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .media-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            min-height: 300px;
+        }
+        .media-image {
+            max-width: 100%;
+            max-height: 300px;
+            display: block;
+            margin: 0 auto 15px;
+            border-radius: 8px;
+        }
+        .media-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .media-date {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+        .media-content {
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 8px 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #playBtn {
+            background-color: #2196F3;
+        }
+        #playBtn:hover {
+            background-color: #0b7dda;
+        }
+        #pauseBtn {
+            background-color: #ff9800;
+        }
+        #pauseBtn:hover {
+            background-color: #e68a00;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kissakuvagalleria</h1>
+    
+    <div class="media-container" id="mediaContainer">
+        <img class="media-image" id="mediaImage" src="" alt="Kissakuva">
+        <div class="media-title" id="mediaTitle"></div>
+        <div class="media-date" id="mediaDate"></div>
+        <div class="media-content" id="mediaContent"></div>
+    </div>
+    
+    <div class="controls">
+        <button id="prevBtn">Edellinen</button>
+        <button id="playBtn">Toisto</button>
+        <button id="pauseBtn" disabled>Pysäytä</button>
+        <button id="nextBtn">Seuraava</button>
+    </div>
+
+    <script>
+        // Kissadata JSON-muodossa
+        const mediaData = [
+            {
+                "title": "Maukuva oranssi",
+                "date": "15.3.2023",
+                "image": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600",
+                "content": "Tämä oranssi kissa nauttii aurinkoisesta päivästä. Sen pehmeä turkki ja suuret silmät tekevät siitä erityisen söpön."
+            },
+            {
+                "title": "Mustan kissan salaisuus",
+                "date": "22.4.2023",
+                "image": "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=600",
+                "content": "Mustat kissat ovat täynnä salaperäisyyttä. Tämä kaunis yksilö katselee uteliaasti ympärilleen hämärässä valaistuksessa."
+            },
+            {
+                "title": "Harmaa nukkuja",
+                "date": "5.5.2023",
+                "image": "https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?w=600",
+                "content": "Kissat nukkuvat päivästä jopa 16 tuntia. Tämä harmaa kaveri on löytänyt täydellisen paikan päiväunilleen."
+            },
+            {
+                "title": "Valkoinen kissanpentu",
+                "date": "18.6.2023",
+                "image": "https://images.unsplash.com/photo-1606225457115-9b0de873c5db?w=600",
+                "content": "Tämä pieni valkoinen kissanpentu on vasta tutustumassa maailmaan. Sen utelias luonne ja leikkisyys ovat ihastuttavia."
+            },
+            {
+                "title": "Tabby-kissan iltapäivä",
+                "date": "30.7.2023",
+                "image": "https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=600",
+                "content": "Tabby-kissat tunnistetaan raidallisesta kuvioinnistaan. Tämä kaunis yksilö nauttii rauhallisesta iltapäivästä ikkunalaudalla."
+            }
+        ];
+
+        let currentIndex = 0;
+        let slideInterval;
+        const intervalTime = 3000; // 3 sekuntia
+
+        // Alusta mediaelementti sivun latautuessa
+        $(document).ready(function() {
+            // Lataa tallennettu indeksi localStoragesta
+            const savedIndex = localStorage.getItem('mediaIndex');
+            if (savedIndex !== null) {
+                currentIndex = parseInt(savedIndex);
+                // Varmista, että indeksi on kelvollinen
+                if (currentIndex < 0 || currentIndex >= mediaData.length) {
+                    currentIndex = 0;
+                }
+            }
+            
+            showMedia(currentIndex);
+            
+            // Aseta tapahtumankäsittelijät painikkeille
+            $('#prevBtn').click(prevMedia);
+            $('#nextBtn').click(nextMedia);
+            $('#playBtn').click(startSlideshow);
+            $('#pauseBtn').click(pauseSlideshow);
+        });
+
+        // Näytä media
+        function showMedia(index) {
+            // Varmista, että indeksi on kelvollinen
+            if (index < 0) {
+                index = mediaData.length - 1;
+            } else if (index >= mediaData.length) {
+                index = 0;
+            }
+            currentIndex = index;
+            
+            // Päivitä mediaelementin sisältö
+            const media = mediaData[index];
+            
+            // Käytä jQueryn fadeOut/fadeIn efektiä
+            $('#mediaContainer').fadeOut(300, function() {
+                $('#mediaImage').attr('src', media.image).attr('alt', media.title);
+                $('#mediaTitle').text(media.title);
+                $('#mediaDate').text(media.date);
+                $('#mediaContent').text(media.content);
+                $(this).fadeIn(300);
+            });
+            
+            // Tallenna nykyinen indeksi localStoragessa
+            localStorage.setItem('mediaIndex', currentIndex);
+        }
+
+        // Edellinen media
+        function prevMedia() {
+            pauseSlideshow();
+            showMedia(currentIndex - 1);
+        }
+
+        // Seuraava media
+        function nextMedia() {
+            pauseSlideshow();
+            showMedia(currentIndex + 1);
+        }
+
+        // Aloita automaattinen toisto
+        function startSlideshow() {
+            pauseSlideshow(); // Pysäytä mahdollinen aiempi toisto
+            slideInterval = setInterval(nextMedia, intervalTime);
+            $('#playBtn').prop('disabled', true);
+            $('#pauseBtn').prop('disabled', false);
+        }
+
+        // Pysäytä automaattinen toisto
+        function pauseSlideshow() {
+            clearInterval(slideInterval);
+            $('#playBtn').prop('disabled', false);
+            $('#pauseBtn').prop('disabled', true);
+        }
+    </script>
+</body>
+</html>

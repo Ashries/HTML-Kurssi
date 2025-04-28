@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laskin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .number-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .number-control {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+        .number-value {
+            min-width: 30px;
+            text-align: center;
+            margin: 0 10px;
+            font-weight: bold;
+        }
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .operation-select {
+            margin: 20px 0;
+            padding: 8px;
+            font-size: 16px;
+        }
+        .calculate-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            font-size: 16px;
+        }
+        .calculate-btn:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-size: 18px;
+            min-height: 30px;
+        }
+        input[type="number"] {
+            padding: 8px;
+            width: 60px;
+            text-align: center;
+        }
+        .error {
+            color: red;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Laskin</h1>
+    
+    <div class="number-container">
+        <div class="number-control">
+            <label for="numberA">Luku 1:</label>
+            <button onclick="decrement('numberA')">-</button>
+            <input type="number" id="numberA" min="1" max="10" readonly>
+            <button onclick="increment('numberA')">+</button>
+        </div>
+    </div>
+    
+    <div class="number-container">
+        <div class="number-control">
+            <label for="numberB">Luku 2:</label>
+            <button onclick="decrement('numberB')">-</button>
+            <input type="number" id="numberB" min="1" max="10" readonly>
+            <button onclick="increment('numberB')">+</button>
+        </div>
+    </div>
+    
+    <select id="operation" class="operation-select">
+        <option value="+">+ (Yhteenlasku)</option>
+        <option value="-">- (Vähennyslasku)</option>
+        <option value="*">* (Kertolasku)</option>
+        <option value="/">/ (Jakolasku)</option>
+    </select>
+    
+    <button onclick="calculate()" class="calculate-btn">Laske</button>
+    
+    <div class="result" id="result">Tulos tulee tähän</div>
+    
+    <script>
+        // Generoidaan satunnaisluvut sivun latautuessa
+        window.onload = function() {
+            const numberA = Math.floor(Math.random() * 10) + 1;
+            const numberB = Math.floor(Math.random() * 10) + 1;
+            
+            document.getElementById('numberA').value = numberA;
+            document.getElementById('numberB').value = numberB;
+        };
+        
+        // Kasvata lukua yhdellä
+        function increment(id) {
+            const input = document.getElementById(id);
+            let value = parseInt(input.value);
+            if (value < 10) {
+                value++;
+                input.value = value;
+            }
+        }
+        
+        // Vähennä lukua yhdellä
+        function decrement(id) {
+            const input = document.getElementById(id);
+            let value = parseInt(input.value);
+            if (value > 1) {
+                value--;
+                input.value = value;
+            }
+        }
+        
+        // Suorita laskutoimitus
+        function calculate() {
+            const numberA = parseInt(document.getElementById('numberA').value);
+            const numberB = parseInt(document.getElementById('numberB').value);
+            const operation = document.getElementById('operation').value;
+            
+            // Validoi luvut
+            if (isNaN(numberA) || isNaN(numberB)) {
+                showError("Virhe: Molemmat luvut pitää olla numeroita");
+                return;
+            }
+            
+            if (numberA < 1 || numberA > 10 || numberB < 1 || numberB > 10) {
+                showError("Virhe: Lukujen pitää olla välillä 1-10");
+                return;
+            }
+            
+            // Suorita laskutoimitus
+            let result;
+            switch(operation) {
+                case '+':
+                    result = numberA + numberB;
+                    break;
+                case '-':
+                    result = numberA - numberB;
+                    break;
+                case '*':
+                    result = numberA * numberB;
+                    break;
+                case '/':
+                    if (numberB === 0) {
+                        showError("Virhe: Nollalla jakaminen ei ole sallittu");
+                        return;
+                    }
+                    result = numberA / numberB;
+                    // Pyöristä kahden desimaalin tarkkuuteen
+                    result = Math.round(result * 100) / 100;
+                    break;
+                default:
+                    showError("Virhe: Tuntematon operaattori");
+                    return;
+            }
+            
+            // Näytä tulos
+            document.getElementById('result').textContent = `Tulos: ${numberA} ${operation} ${numberB} = ${result}`;
+        }
+        
+        // Näytä virheilmoitus
+        function showError(message) {
+            document.getElementById('result').textContent = message;
+            document.getElementById('result').style.color = "red";
+            
+            // Poista virheviesti 3 sekunnin kuluttua
+            setTimeout(() => {
+                document.getElementById('result').style.color = "";
+                document.getElementById('result').textContent = "Tulos tulee tähän";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
