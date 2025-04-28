@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google-kartta haku</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #3367D6;
+        }
+        #map {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Karttahaku</h1>
+    
+    <div class="input-group">
+        <label for="address">Katuosoite:</label>
+        <input type="text" id="address" placeholder="Kirjoita katuosoite">
+    </div>
+    
+    <div class="input-group">
+        <label for="city">Kaupunki:</label>
+        <input type="text" id="city" placeholder="Kirjoita kaupunki">
+    </div>
+    
+    <button id="search" onclick="updateMap()">Hae</button>
+    
+    <div id="map">
+        <iframe id="mapFrame" width="800" height="450" frameborder="0" style="border:0"></iframe>
+    </div>
+
+    <script>
+        // Asetetaan oletusosoite sivun latautuessa
+        window.onload = function() {
+            const defaultAddress = "Yliopistonkatu 36";
+            const defaultCity = "Lappeenranta";
+            
+            document.getElementById("address").value = defaultAddress;
+            document.getElementById("city").value = defaultCity;
+            
+            updateMapWithAddress(defaultAddress, defaultCity);
+        };
+        
+        // Päivitä kartta Hae-painiketta klikattaessa
+        function updateMap() {
+            const address = document.getElementById("address").value;
+            const city = document.getElementById("city").value;
+            
+            updateMapWithAddress(address, city);
+        }
+        
+        // Päivitä iframe src-osoite annetun osoitteen ja kaupungin perusteella
+        function updateMapWithAddress(address, city) {
+            const mapFrame = document.getElementById("mapFrame");
+            mapFrame.src = `https://www.google.com/maps?q=${encodeURIComponent(address)} ${encodeURIComponent(city)}&output=embed`;
+        }
+    </script>
+</body>
+</html>
